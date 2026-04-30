@@ -19,7 +19,12 @@ import type {
   ThemeDefinition,
   ThemeReference,
 } from "../schema/types.js";
-import { defineTheme, resolveThemeReference } from "../theme/index.js";
+import {
+  defineTheme,
+  resolveThemeCssVariables,
+  resolveThemeReference,
+  type ThemeCssVariables,
+} from "../theme/index.js";
 
 const DEFAULT_VERSION = 1;
 const DEFAULT_LAYOUT_WIDTH = 550;
@@ -116,6 +121,7 @@ export interface NormalizedMessage {
 export interface NormalizedDocument {
   version: 1;
   theme: ThemeDefinition;
+  themeVariables: ThemeCssVariables;
   layout: NormalizedLayout;
   assets: NormalizedAssetOptions;
   messages: NormalizedMessage[];
@@ -152,6 +158,7 @@ export async function normalizeDocument(
   return {
     version: DEFAULT_VERSION,
     theme,
+    themeVariables: resolveThemeCssVariables(theme),
     layout,
     assets,
     messages,

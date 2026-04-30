@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { normalizeDocument, NormalizationError } from "../src/normalize/index.js";
 import type { DiscordMessageDocument } from "../src/schema/types.js";
-import { discordDarkTheme } from "../src/theme/index.js";
+import { discordDarkTheme, resolveThemeCssVariables } from "../src/theme/index.js";
 
 describe("normalizeDocument", () => {
   it("applies defaults and produces deterministic normalized output", async () => {
@@ -40,6 +40,7 @@ describe("normalizeDocument", () => {
     expect(first).toEqual({
       version: 1,
       theme: discordDarkTheme,
+      themeVariables: resolveThemeCssVariables(discordDarkTheme),
       layout: {
         width: 550,
         padding: 16,
@@ -157,6 +158,7 @@ describe("normalizeDocument", () => {
 
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(normalized.theme.name).toBe("Custom Light");
+    expect(normalized.themeVariables["--gdm-color-mention-background"]).toBe("#123456");
     expect(normalized.layout).toEqual({
       width: 560,
       padding: 24,
