@@ -71,7 +71,7 @@ describe("renderToHtml", () => {
         {
           author: { name: "Eris" },
           content:
-            "I'm thinking about **Markdown** syntax! <@{username}>\nCheck `renderToHtml` at https://example.com/docs.",
+            "I'm thinking about **Markdown** syntax! <@username>\nCheck `renderToHtml` at https://example.com/docs.",
         },
       ],
     });

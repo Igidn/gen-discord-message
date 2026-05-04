@@ -15,7 +15,7 @@ async function main(): Promise<void> {
           avatarUrl: CUSTOM_AVATAR,
         },
         timestamp: "2026-04-29T20:21:00Z",
-        content: "Ship it <@{team}> with **one** canonical HTML pipeline.",
+        content: "Ship it <@team> with **one** canonical HTML pipeline.",
       },
     ],
   };

@@ -1,7 +1,9 @@
 import type { ContentNode } from "../schema/types.js";
 
-const MENTION_OPEN = "<@{";
-const MENTION_CLOSE = "}>";
+const MENTION_PREFIX = "<@";
+const MENTION_BRACED_OPEN = "{";
+const MENTION_BRACED_CLOSE = "}>";
+const MENTION_CLOSE = ">";
 const STRONG_DELIMITER = "**";
 const INLINE_CODE_DELIMITER = "`";
 const EMPHASIS_DELIMITERS = new Set(["*"]);
@@ -136,7 +138,7 @@ function parseSequence(
       continue;
     }
 
-    if (state.input.startsWith(MENTION_OPEN, index)) {
+    if (state.input.startsWith(MENTION_PREFIX, index)) {
       flushTextBuffer();
 
       const mentionNode = parseMentionNode(state, index);
@@ -253,10 +255,14 @@ function parseMentionNode(
   state: ParseState,
   startIndex: number,
 ): ParsedNodeResult | null {
-  const closeIndex = state.input.indexOf(
-    MENTION_CLOSE,
-    startIndex + MENTION_OPEN.length,
-  );
+  const valueStartIndex = startIndex + MENTION_PREFIX.length;
+  const usesLegacyBraces =
+    state.input[valueStartIndex] === MENTION_BRACED_OPEN;
+  const rawValueStartIndex = usesLegacyBraces
+    ? valueStartIndex + MENTION_BRACED_OPEN.length
+    : valueStartIndex;
+  const closeToken = usesLegacyBraces ? MENTION_BRACED_CLOSE : MENTION_CLOSE;
+  const closeIndex = state.input.indexOf(closeToken, rawValueStartIndex);
 
   if (closeIndex === -1) {
     pushInvalidSyntaxIssue(
@@ -267,9 +273,7 @@ function parseMentionNode(
     return null;
   }
 
-  const rawValue = state.input
-    .slice(startIndex + MENTION_OPEN.length, closeIndex)
-    .trim();
+  const rawValue = state.input.slice(rawValueStartIndex, closeIndex).trim();
 
   if (rawValue.length === 0) {
     pushInvalidSyntaxIssue(
@@ -285,7 +289,7 @@ function parseMentionNode(
       type: "mention",
       value: rawValue.startsWith("@") ? rawValue : `@${rawValue}`,
     },
-    index: closeIndex + MENTION_CLOSE.length,
+    index: closeIndex + closeToken.length,
   };
 }
 

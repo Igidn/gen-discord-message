@@ -12,7 +12,7 @@ async function main(): Promise<void> {
             accentColor: "#57f287",
           },
           timestamp: "2026-04-29T18:30:00Z",
-          content: "Ship it <@{team}> and check `renderToHtml`.",
+          content: "Ship it <@team> and check `renderToHtml`.",
           edited: true,
         },
       ],

@@ -4,7 +4,7 @@ const validation = validateDocument({
   messages: [
     {
       author: { name: "Eris" },
-      content: "Hello <@{team}> — check https://example.com/docs",
+      content: "Hello <@team> — check https://example.com/docs",
     },
   ],
 });

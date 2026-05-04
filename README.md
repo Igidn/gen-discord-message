@@ -189,7 +189,7 @@ Each message supports:
 - `**strong**`
 - `*emphasis*`
 - `` `inline code` ``
-- `<@{username}>`
+- `<@username>`
 - absolute `http://` and `https://` URLs
 - newlines
 
@@ -201,7 +201,7 @@ const document = {
     {
       author: { name: "Eris" },
       content:
-        "I'm thinking about **Markdown** syntax! <@{username}>\nCheck `renderToHtml` at https://example.com/docs.",
+        "I'm thinking about **Markdown** syntax! <@username>\nCheck `renderToHtml` at https://example.com/docs.",
     },
   ],
 };

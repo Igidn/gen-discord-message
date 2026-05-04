@@ -210,7 +210,7 @@ describe("normalizeDocument", () => {
           author: { name: "Eris" },
           timestamp: "Today at 8:12 PM",
           content:
-            "I'm thinking about switching to **Markdown** syntax! <@{username}>\nCheck `renderToHtml` at https://example.com/docs.",
+            "I'm thinking about switching to **Markdown** syntax! <@username>\nCheck `renderToHtml` at https://example.com/docs.",
         },
       ],
     });

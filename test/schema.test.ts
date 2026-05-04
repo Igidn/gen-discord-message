@@ -82,7 +82,7 @@ describe("validateDocument", () => {
           author: { name: "Eris" },
           timestamp: "Today at 8:12 PM",
           content:
-            "I\nuse **Markdown** and *mentions* with <@{username}> plus https://example.com/docs.",
+            "I\nuse **Markdown** and *mentions* with <@username> plus https://example.com/docs.",
         },
       ],
     });
@@ -233,7 +233,7 @@ describe("validateDocument", () => {
         },
         {
           author: { name: "Nyx" },
-          content: "Say hi to <@{}>",
+          content: "Say hi to <@>",
         },
       ],
     });

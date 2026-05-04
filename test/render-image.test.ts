@@ -55,7 +55,7 @@ describe("renderToImage", () => {
         {
           author: { name: "Eris" },
           content:
-            "Hybrid **content** <@{username}> with https://example.com/docs",
+            "Hybrid **content** <@username> with https://example.com/docs",
         },
       ],
     });
