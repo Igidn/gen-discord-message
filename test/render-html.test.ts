@@ -44,7 +44,7 @@ describe("renderToHtml", () => {
     expect(first.html).toContain('<div class="gdm-root"');
     expect(first.html).toContain('<article class="gdm-message">');
     expect(first.html).toContain('datetime="2026-04-20T23:20:00.000Z"');
-    expect(first.html).toContain(">2026-04-20 23:20 UTC<");
+    expect(first.html).toContain(">4/20/2026 11:20 PM<");
     expect(first.html).toContain('<span class="gdm-author">username</span>');
     expect(first.html).toContain('<img class="gdm-avatar"');
     expect(first.html).toContain('<span class="gdm-mention"');
@@ -61,6 +61,7 @@ describe("renderToHtml", () => {
   it("returns a full html document with inline scoped css when requested", async () => {
     const result = await renderToHtml(
       {
+        assets: { fetchRemoteAssets: false },
         messages: [
           {
             author: { name: "lopax" },
@@ -83,6 +84,7 @@ describe("renderToHtml", () => {
 
   it("renders a deterministic avatar fallback placeholder and escapes user content", async () => {
     const result = await renderToHtml({
+      assets: { avatarFallbackUrl: null },
       messages: [
         {
           author: {
@@ -106,6 +108,7 @@ describe("renderToHtml", () => {
   it("supports null layout background without forcing a solid fill", async () => {
     const result = await renderToHtml({
       layout: { background: null },
+      assets: { fetchRemoteAssets: false },
       messages: [
         {
           author: { name: "transparent" },

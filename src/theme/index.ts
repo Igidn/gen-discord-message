@@ -21,6 +21,7 @@ export const THEME_TOKEN_CATEGORIES = {
     "colorMentionBackground",
     "colorMentionText",
     "colorInlineCodeBackground",
+    "colorInlineCodeBorder",
     "colorInlineCodeText",
     "colorTimestamp",
     "colorEdited",
@@ -33,7 +34,7 @@ export const THEME_TOKEN_CATEGORIES = {
     "lineHeightMessage",
   ],
   spacing: ["spacingMessageGap", "spacingContentGap", "spacingInlinePadding"],
-  radii: ["radiusInline"],
+  radii: ["radiusInline", "radiusMention"],
   sizing: ["sizeAvatar"],
   density: ["density"],
 } as const satisfies Record<string, readonly (keyof ThemeTokens)[]>;
@@ -46,6 +47,7 @@ const THEME_TOKEN_CSS_VARIABLES = {
   colorMentionBackground: "--gdm-color-mention-background",
   colorMentionText: "--gdm-color-mention-text",
   colorInlineCodeBackground: "--gdm-color-inline-code-background",
+  colorInlineCodeBorder: "--gdm-color-inline-code-border",
   colorInlineCodeText: "--gdm-color-inline-code-text",
   colorTimestamp: "--gdm-color-timestamp",
   colorEdited: "--gdm-color-edited",
@@ -58,6 +60,7 @@ const THEME_TOKEN_CSS_VARIABLES = {
   spacingContentGap: "--gdm-spacing-content-gap",
   spacingInlinePadding: "--gdm-spacing-inline-padding",
   radiusInline: "--gdm-radius-inline",
+  radiusMention: "--gdm-radius-mention",
   sizeAvatar: "--gdm-size-avatar",
   density: "--gdm-density",
 } as const satisfies Record<keyof ThemeTokens, `--gdm-${string}`>;

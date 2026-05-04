@@ -145,11 +145,6 @@ describe("validateDocument", () => {
         message: "accentColor must be a valid color string.",
       },
       {
-        path: "messages[0].timestamp",
-        code: "invalid_literal",
-        message: "timestamp must be a valid date string.",
-      },
-      {
         path: "messages[0].content[0].href",
         code: "invalid_url",
         message: "link href must be a valid URL.",

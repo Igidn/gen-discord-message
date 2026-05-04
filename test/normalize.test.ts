@@ -7,6 +7,9 @@ import { discordDarkTheme, resolveThemeCssVariables } from "../src/theme/index.j
 describe("normalizeDocument", () => {
   it("applies defaults and produces deterministic normalized output", async () => {
     const document: DiscordMessageDocument = {
+      assets: {
+        fetchRemoteAssets: false,
+      },
       messages: [
         {
           author: {
@@ -47,8 +50,8 @@ describe("normalizeDocument", () => {
         background: discordDarkTheme.tokens.colorBackground,
       },
       assets: {
-        fetchRemoteAssets: true,
-        avatarFallbackUrl: null,
+        fetchRemoteAssets: false,
+        avatarFallbackUrl: "https://discord.com/assets/18e336a74a159cfd.png",
         requestTimeoutMs: 10_000,
       },
       messages: [
@@ -60,10 +63,10 @@ describe("normalizeDocument", () => {
             avatar: {
               kind: "avatar",
               sourceUrl: null,
-              fallbackUrl: null,
-              resolvedUrl: null,
+              fallbackUrl: "https://discord.com/assets/18e336a74a159cfd.png",
+              resolvedUrl: "https://discord.com/assets/18e336a74a159cfd.png",
               mediaType: null,
-              status: "missing",
+              status: "skipped",
               errorCode: null,
             },
             accentColor: null,
@@ -75,7 +78,7 @@ describe("normalizeDocument", () => {
             epochMs: Date.parse("2026-04-29T18:30:00Z"),
             dateText: "2026-04-29",
             timeText: "18:30",
-            displayText: "2026-04-29 18:30 UTC",
+            displayText: "4/29/2026 6:30 PM",
           },
           content: [
             {
@@ -214,7 +217,7 @@ describe("normalizeDocument", () => {
     expect(normalized.messages[0]?.author.avatar).toEqual({
       kind: "avatar",
       sourceUrl: "https://example.com/avatar.png",
-      fallbackUrl: null,
+      fallbackUrl: "https://discord.com/assets/18e336a74a159cfd.png",
       resolvedUrl: "https://example.com/avatar.png",
       mediaType: null,
       status: "skipped",

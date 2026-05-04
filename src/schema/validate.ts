@@ -335,7 +335,7 @@ function validateAssets(
       );
     }
 
-    if (Object.hasOwn(value, "avatarFallbackUrl")) {
+    if (Object.hasOwn(value, "avatarFallbackUrl") && value.avatarFallbackUrl !== null) {
       validateUrlString(value.avatarFallbackUrl, joinPath(path, "avatarFallbackUrl"), "avatarFallbackUrl", issues);
     }
 
@@ -466,10 +466,6 @@ function validateAuthor(
 
 function validateTimestamp(value: unknown, path: string, issues: ValidationIssue[]): void {
   if (typeof value === "string") {
-    if (Number.isNaN(Date.parse(value))) {
-      pushIssue(issues, path, "invalid_literal", "timestamp must be a valid date string.");
-    }
-
     return;
   }
 

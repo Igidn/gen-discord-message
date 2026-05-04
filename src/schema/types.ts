@@ -98,6 +98,7 @@ export interface ThemeTokens {
   colorMentionBackground: string;
   colorMentionText: string;
   colorInlineCodeBackground: string;
+  colorInlineCodeBorder: string;
   colorInlineCodeText: string;
   colorTimestamp: string;
   colorEdited: string;
@@ -110,6 +111,7 @@ export interface ThemeTokens {
   spacingContentGap: string;
   spacingInlinePadding: string;
   radiusInline: string;
+  radiusMention: string;
   sizeAvatar: string;
   density: "comfortable" | "compact";
 }
@@ -122,6 +124,6 @@ export interface LayoutOptions {
 
 export interface AssetOptions {
   fetchRemoteAssets?: boolean;
-  avatarFallbackUrl?: string;
+  avatarFallbackUrl?: string | null;
   requestTimeoutMs?: number;
 }

@@ -47,7 +47,7 @@ describe("theme helpers", () => {
     const cssVariables = resolveThemeCssVariables(discordDarkTheme);
 
     expect(cssVariables).toMatchObject({
-      "--gdm-color-background": "#313338",
+      "--gdm-color-background": "#1a1a1e",
       "--gdm-font-weight-medium": "500",
       "--gdm-line-height-message": "1.375",
       "--gdm-density": "comfortable",

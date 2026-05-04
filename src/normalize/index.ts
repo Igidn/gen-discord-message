@@ -31,6 +31,7 @@ const DEFAULT_LAYOUT_WIDTH = 550;
 const DEFAULT_LAYOUT_PADDING = 16;
 const DEFAULT_FETCH_REMOTE_ASSETS = true;
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
+const DISCORD_LOGO_FALLBACK_URL = "https://discord.com/assets/18e336a74a159cfd.png";
 
 export interface NormalizeDocumentOptions {
   fetch?: AssetResolverFetch;
@@ -180,7 +181,8 @@ function normalizeTheme(input: DiscordMessageDocument["theme"] | undefined): The
 function normalizeAssetOptions(input: AssetOptions | undefined): NormalizedAssetOptions {
   return {
     fetchRemoteAssets: input?.fetchRemoteAssets ?? DEFAULT_FETCH_REMOTE_ASSETS,
-    avatarFallbackUrl: input?.avatarFallbackUrl ?? null,
+    avatarFallbackUrl:
+      input?.avatarFallbackUrl === undefined ? DISCORD_LOGO_FALLBACK_URL : input.avatarFallbackUrl,
     requestTimeoutMs: input?.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
   };
 }
@@ -243,7 +245,26 @@ function normalizeTimestamp(input: DiscordMessage["timestamp"]): NormalizedTimes
     return null;
   }
 
-  const date = typeof input === "string" ? new Date(input) : input;
+  if (input instanceof Date) {
+    return formatNormalizedTimestamp(input);
+  }
+
+  const parsedDate = new Date(input);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return {
+      iso: "",
+      epochMs: 0,
+      dateText: "",
+      timeText: "",
+      displayText: input,
+    };
+  }
+
+  return formatNormalizedTimestamp(parsedDate);
+}
+
+function formatNormalizedTimestamp(date: Date): NormalizedTimestamp {
   const iso = date.toISOString();
   const dateText = iso.slice(0, 10);
   const timeText = iso.slice(11, 16);
@@ -253,8 +274,24 @@ function normalizeTimestamp(input: DiscordMessage["timestamp"]): NormalizedTimes
     epochMs: date.getTime(),
     dateText,
     timeText,
-    displayText: `${dateText} ${timeText} UTC`,
+    displayText: formatAbsoluteTimestamp(date),
   };
+}
+
+function formatAbsoluteTimestamp(date: Date): string {
+  let hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+  const ampm = hours >= 12 ? "PM" : "AM";
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const minutesStr = minutes < 10 ? `0${minutes}` : `${minutes}`;
+  const timeStr = `${hours}:${minutesStr} ${ampm}`;
+
+  const month = date.getUTCMonth() + 1;
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear();
+
+  return `${month}/${day}/${year} ${timeStr}`;
 }
 
 function normalizeContentNodes(
