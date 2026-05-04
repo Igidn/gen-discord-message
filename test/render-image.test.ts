@@ -135,4 +135,21 @@ describe("renderToImage", () => {
       ),
     ).rejects.toThrow("renderToImage scale must be greater than 0.");
   });
+
+  it("rejects invalid image renderer options with readable errors", async () => {
+    await expect(
+      renderToImage(
+        {
+          assets: { avatarFallbackUrl: null },
+          messages: [
+            {
+              author: { name: "lopax" },
+              content: [{ type: "text", value: "hello" }],
+            },
+          ],
+        },
+        { format: "gif" as never },
+      ),
+    ).rejects.toThrow('renderToImage format must be "png", "jpeg", or "webp".');
+  });
 });

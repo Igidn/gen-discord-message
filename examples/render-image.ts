@@ -1,9 +1,8 @@
 import { writeFile } from "node:fs/promises";
 
-import { renderToImage } from "../dist/index.js";
+import { renderToImage } from "../src/index.js";
 
-const CUSTOM_AVATAR =
-  "https://cdn.discordapp.com/avatars/841196373948497941/f87468636c74b952fa04c798777961a9.webp?size=1024";
+const CUSTOM_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
 
 async function main(): Promise<void> {
   const document = {
@@ -15,15 +14,14 @@ async function main(): Promise<void> {
           name: "Eris",
           avatarUrl: CUSTOM_AVATAR,
         },
-        timestamp: "20:21 PM",
-        content: [{ type: "text", value: "im gay" }],
+        timestamp: "2026-04-29T20:21:00Z",
+        content: "Ship it <@{team}> with **one** canonical HTML pipeline.",
       },
     ],
   };
 
   const image = await renderToImage(document, {
     format: "png",
-
     clip: "content",
   });
 

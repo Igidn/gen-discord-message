@@ -13,7 +13,9 @@ import {
 describe("theme helpers", () => {
   it("tracks built-in preset versions and categorizes every token exactly once", () => {
     const tokenNames = Object.keys(discordDarkTheme.tokens).sort();
-    const categorizedTokenNames = Object.values(THEME_TOKEN_CATEGORIES).flat().sort();
+    const categorizedTokenNames = Object.values(THEME_TOKEN_CATEGORIES)
+      .flat()
+      .sort();
 
     expect(BUILT_IN_THEME_PRESET_VERSIONS).toEqual({
       discordDark: 1,
@@ -52,6 +54,37 @@ describe("theme helpers", () => {
       "--gdm-line-height-message": "1.375",
       "--gdm-density": "comfortable",
     });
-    expect(Object.keys(cssVariables)).toHaveLength(Object.keys(discordDarkTheme.tokens).length);
+    expect(Object.keys(cssVariables)).toHaveLength(
+      Object.keys(discordDarkTheme.tokens).length,
+    );
+  });
+
+  it("throws readable errors for invalid custom theme input", () => {
+    expect(() => defineTheme(null as never)).toThrow(
+      "defineTheme input must be an object.",
+    );
+    expect(() =>
+      defineTheme({
+        tokens: {
+          madeUpToken: true,
+        },
+      } as never),
+    ).toThrow("defineTheme tokens contains an unknown token: madeUpToken.");
+    expect(() =>
+      defineTheme({
+        tokens: {
+          colorBackground: "not-a-color$",
+        },
+      } as never),
+    ).toThrow(
+      "defineTheme tokens.colorBackground must be a valid color string.",
+    );
+    expect(() =>
+      defineTheme({
+        tokens: {
+          density: "loud",
+        },
+      } as never),
+    ).toThrow('defineTheme tokens.density must be "comfortable" or "compact".');
   });
 });

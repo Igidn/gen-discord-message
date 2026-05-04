@@ -1,14 +1,37 @@
-import { normalizeDocument, type NormalizedContentNode, type NormalizedDocument } from "../../normalize/index.js";
+import {
+  normalizeDocument,
+  type NormalizedContentNode,
+  type NormalizedDocument,
+} from "../../normalize/index.js";
 import type { DiscordMessageDocument } from "../../schema/types.js";
 
 const ROOT_CLASS = "gdm-root";
 const AVATAR_PLACEHOLDER_CLASS = "gdm-avatar-placeholder";
 
+interface ResolvedRenderHtmlOptions {
+  includeDocumentWrapper: boolean;
+  nonce: string | undefined;
+}
+
+/**
+ * HTML renderer configuration.
+ */
 export interface RenderHtmlOptions {
+  /**
+   * When `true`, returns a full HTML document with an inline `<style>` tag.
+   * When omitted or `false`, returns only the transcript fragment.
+   */
   includeDocumentWrapper?: boolean;
+  /**
+   * Optional CSP nonce applied to the inline style tag when a full HTML
+   * document wrapper is requested.
+   */
   nonce?: string;
 }
 
+/**
+ * Result of rendering a validated document to deterministic HTML and CSS.
+ */
 export interface RenderHtmlResult {
   html: string;
   css: string;
@@ -16,23 +39,59 @@ export interface RenderHtmlResult {
   height?: number;
 }
 
+/**
+ * Renders a document to canonical HTML and scoped CSS.
+ *
+ * This is the source-of-truth render step used directly by consumers and by
+ * the image renderer.
+ */
 export async function renderToHtml(
   document: DiscordMessageDocument,
   options: RenderHtmlOptions = {},
 ): Promise<RenderHtmlResult> {
+  const resolvedOptions = resolveRenderHtmlOptions(options);
   const normalizedDocument = await normalizeDocument(document);
   const css = buildScopedCss(normalizedDocument);
   const fragment = renderHtmlFragment(normalizedDocument);
 
   return {
-    html: options.includeDocumentWrapper ? renderHtmlDocument(fragment, css, options.nonce) : fragment,
+    html: resolvedOptions.includeDocumentWrapper
+      ? renderHtmlDocument(fragment, css, resolvedOptions.nonce)
+      : fragment,
     css,
     width: normalizedDocument.layout.width,
   };
 }
 
-function renderHtmlDocument(fragment: string, css: string, nonce: string | undefined): string {
-  const nonceAttribute = nonce === undefined ? "" : ` nonce="${escapeHtmlAttribute(nonce)}"`;
+function resolveRenderHtmlOptions(
+  options: RenderHtmlOptions,
+): ResolvedRenderHtmlOptions {
+  if (
+    options.includeDocumentWrapper !== undefined &&
+    typeof options.includeDocumentWrapper !== "boolean"
+  ) {
+    throw new TypeError(
+      "renderToHtml includeDocumentWrapper must be a boolean when provided.",
+    );
+  }
+
+  if (options.nonce !== undefined && typeof options.nonce !== "string") {
+    throw new TypeError("renderToHtml nonce must be a string when provided.");
+  }
+
+  return {
+    includeDocumentWrapper: options.includeDocumentWrapper ?? false,
+    nonce: options.nonce,
+  };
+}
+
+function renderHtmlDocument(
+  fragment: string,
+  css: string,
+  nonce: string | undefined,
+): string {
+  const nonceAttribute =
+    nonce === undefined ? "" : ` nonce="${escapeHtmlAttribute(nonce)}"`;
 
   return [
     "<!doctype html>",
@@ -62,12 +121,16 @@ function renderHtmlFragment(document: NormalizedDocument): string {
     styleParts.push(`${name}:${value}`);
   }
 
-  const messages = document.messages.map((message) => renderMessage(message)).join("");
+  const messages = document.messages
+    .map((message) => renderMessage(message))
+    .join("");
 
   return `<div class="${ROOT_CLASS}" data-theme="${escapeHtmlAttribute(document.theme.name)}" style="${escapeHtmlAttribute(styleParts.join(";"))}"><div class="gdm-transcript">${messages}</div></div>`;
 }
 
-function renderMessage(message: NormalizedDocument["messages"][number]): string {
+function renderMessage(
+  message: NormalizedDocument["messages"][number],
+): string {
   const authorStyle =
     message.author.accentColor === null
       ? ""
@@ -78,10 +141,16 @@ function renderMessage(message: NormalizedDocument["messages"][number]): string 
       : message.timestamp.iso.length > 0
         ? `<time class="gdm-timestamp" datetime="${escapeHtmlAttribute(message.timestamp.iso)}">${escapeHtmlText(message.timestamp.displayText)}</time>`
         : `<time class="gdm-timestamp">${escapeHtmlText(message.timestamp.displayText)}</time>`;
-  const editedMarker = message.edited ? '<span class="gdm-edited" aria-label="edited">(edited)</span>' : "";
+  const editedMarker = message.edited
+    ? '<span class="gdm-edited" aria-label="edited">(edited)</span>'
+    : "";
   const avatar = renderAvatar(message);
-  const botBadge = message.author.bot ? '<span class="gdm-badge">BOT</span>' : "";
-  const systemBadge = message.author.system ? '<span class="gdm-badge">SYSTEM</span>' : "";
+  const botBadge = message.author.bot
+    ? '<span class="gdm-badge">BOT</span>'
+    : "";
+  const systemBadge = message.author.system
+    ? '<span class="gdm-badge">SYSTEM</span>'
+    : "";
 
   return `<article class="gdm-message"><div class="gdm-avatar-slot">${avatar}</div><div class="gdm-message-body"><header class="gdm-message-meta"><span class="gdm-author"${authorStyle}>${escapeHtmlText(message.author.name)}</span>${botBadge}${systemBadge}${timestamp}</header><div class="gdm-content">${renderContentNodes(message.content)}${editedMarker}</div></div></article>`;
 }

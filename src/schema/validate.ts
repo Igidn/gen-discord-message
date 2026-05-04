@@ -1,12 +1,18 @@
 import { parseContent } from "../content/parse.js";
 import type { ThemeTokens } from "./types.js";
 
+/**
+ * Stable, machine-readable validation issue returned by `validateDocument()`.
+ */
 export interface ValidationIssue {
   path: string;
   code: string;
   message: string;
 }
 
+/**
+ * Non-throwing validation result for user-provided documents.
+ */
 export interface ValidationResult {
   valid: boolean;
   issues: ValidationIssue[];
@@ -84,6 +90,7 @@ const COLOR_TOKEN_KEYS = new Set<keyof ThemeTokens>([
   "colorMentionBackground",
   "colorMentionText",
   "colorInlineCodeBackground",
+  "colorInlineCodeBorder",
   "colorInlineCodeText",
   "colorTimestamp",
   "colorEdited",
@@ -95,6 +102,7 @@ const STRING_TOKEN_KEYS = new Set<keyof ThemeTokens>([
   "spacingContentGap",
   "spacingInlinePadding",
   "radiusInline",
+  "radiusMention",
   "sizeAvatar",
 ]);
 const NUMBER_TOKEN_KEYS = new Set<keyof ThemeTokens>([
@@ -109,6 +117,7 @@ const THEME_TOKEN_KEYS = [
   "colorMentionBackground",
   "colorMentionText",
   "colorInlineCodeBackground",
+  "colorInlineCodeBorder",
   "colorInlineCodeText",
   "colorTimestamp",
   "colorEdited",
@@ -121,10 +130,17 @@ const THEME_TOKEN_KEYS = [
   "spacingContentGap",
   "spacingInlinePadding",
   "radiusInline",
+  "radiusMention",
   "sizeAvatar",
   "density",
 ] as const;
 
+/**
+ * Validates an unknown value against the public document contract.
+ *
+ * Validation is intentionally non-throwing so user mistakes can be surfaced as
+ * stable issue objects with machine-readable paths and codes.
+ */
 export function validateDocument(input: unknown): ValidationResult {
   const issues: ValidationIssue[] = [];
   const ancestors = new Set<object>();

@@ -152,4 +152,25 @@ describe("renderToHtml", () => {
     expect(result.html).not.toContain("--gdm-layout-background:");
     expect(result.css).toContain("background:transparent");
   });
+
+  it("rejects invalid html renderer options with readable errors", async () => {
+    await expect(
+      renderToHtml(
+        {
+          assets: { fetchRemoteAssets: false },
+          messages: [
+            {
+              author: { name: "lopax" },
+              content: [{ type: "text", value: "hello" }],
+            },
+          ],
+        },
+        {
+          includeDocumentWrapper: "yes" as never,
+        },
+      ),
+    ).rejects.toThrow(
+      "renderToHtml includeDocumentWrapper must be a boolean when provided.",
+    );
+  });
 });

@@ -21,7 +21,6 @@ export {
 export type {
   AssetOptions,
   ContentNode,
-  ContentNodeBase,
   DiscordAuthor,
   DiscordMessage,
   DiscordMessageDocument,

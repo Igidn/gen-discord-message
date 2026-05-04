@@ -12,6 +12,8 @@ describe("validateDocument", () => {
         tokens: {
           colorBackground: "#313338",
           colorLink: "rgb(0 168 252)",
+          colorInlineCodeBorder: "#1e1f22",
+          radiusMention: "6px",
           density: "comfortable",
         },
       },

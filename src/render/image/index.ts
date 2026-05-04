@@ -23,13 +23,23 @@ interface ClipBounds {
   height: number;
 }
 
+/**
+ * Image renderer configuration.
+ */
 export interface RenderImageOptions {
+  /** Output image format. Defaults to `"png"`. */
   format?: "png" | "jpeg" | "webp";
+  /** Output device scale factor. Must be greater than `0`. Defaults to `1`. */
   scale?: number;
+  /** Optional background override. Use `null` to request transparency. */
   background?: string | null;
+  /** Crop to rendered content or capture the configured viewport width. */
   clip?: "content" | "viewport";
 }
 
+/**
+ * Result of rendering a document to an image.
+ */
 export interface RenderImageResult {
   data: Uint8Array;
   format: "png" | "jpeg" | "webp";
@@ -37,6 +47,10 @@ export interface RenderImageResult {
   height: number;
 }
 
+/**
+ * Renders a document to an image by loading the canonical HTML output in a
+ * headless browser and capturing a screenshot.
+ */
 export async function renderToImage(
   document: DiscordMessageDocument,
   options: RenderImageOptions = {},
@@ -57,11 +71,17 @@ export async function renderToImage(
     try {
       const page = await context.newPage();
 
-      await page.setContent(buildImageDocument(renderedHtml.html, renderedHtml.css), {
-        waitUntil: "load",
-      });
+      await page.setContent(
+        buildImageDocument(renderedHtml.html, renderedHtml.css),
+        {
+          waitUntil: "load",
+        },
+      );
       await applyBackgroundOverride(page, resolvedOptions.background);
-      await waitForAssetsAndLayout(page, document.assets?.requestTimeoutMs ?? DEFAULT_ASSET_SETTLE_TIMEOUT_MS);
+      await waitForAssetsAndLayout(
+        page,
+        document.assets?.requestTimeoutMs ?? DEFAULT_ASSET_SETTLE_TIMEOUT_MS,
+      );
 
       const bounds = await measureContentBounds(page);
 
@@ -71,10 +91,18 @@ export async function renderToImage(
       });
       await waitForAnimationFrame(page);
 
-      const data = await captureScreenshot(context, page, resolvedOptions, bounds);
+      const data = await captureScreenshot(
+        context,
+        page,
+        resolvedOptions,
+        bounds,
+      );
       const size =
         resolvedOptions.clip === "content"
-          ? { width: ensurePixelSize(bounds.width), height: ensurePixelSize(bounds.height) }
+          ? {
+              width: ensurePixelSize(bounds.width),
+              height: ensurePixelSize(bounds.height),
+            }
           : {
               width: ensurePixelSize(renderedHtml.width),
               height: ensurePixelSize(bounds.height),
@@ -94,11 +122,15 @@ export async function renderToImage(
   }
 }
 
-function resolveRenderImageOptions(options: RenderImageOptions): ResolvedRenderImageOptions {
+function resolveRenderImageOptions(
+  options: RenderImageOptions,
+): ResolvedRenderImageOptions {
   const format = options.format ?? DEFAULT_IMAGE_FORMAT;
 
   if (format !== "png" && format !== "jpeg" && format !== "webp") {
-    throw new TypeError(`Unsupported image format: ${String(format)}`);
+    throw new TypeError(
+      'renderToImage format must be "png", "jpeg", or "webp".',
+    );
   }
 
   const scale = options.scale ?? DEFAULT_IMAGE_SCALE;
@@ -110,7 +142,17 @@ function resolveRenderImageOptions(options: RenderImageOptions): ResolvedRenderI
   const clip = options.clip ?? DEFAULT_IMAGE_CLIP;
 
   if (clip !== "content" && clip !== "viewport") {
-    throw new TypeError(`Unsupported clip mode: ${String(clip)}`);
+    throw new TypeError('renderToImage clip must be "content" or "viewport".');
+  }
+
+  if (
+    options.background !== undefined &&
+    options.background !== null &&
+    typeof options.background !== "string"
+  ) {
+    throw new TypeError(
+      "renderToImage background must be a string or null when provided.",
+    );
   }
 
   return {
@@ -129,60 +171,75 @@ function buildImageDocument(fragment: string, css: string): string {
     '  <meta charset="utf-8">',
     '  <meta name="viewport" content="width=device-width, initial-scale=1">',
     `  <style>${css}</style>`,
-    '  <style>html,body{margin:0;padding:0;}body{display:block;}#gdm-image-mount{display:inline-block;}</style>',
+    "  <style>html,body{margin:0;padding:0;}body{display:block;}#gdm-image-mount{display:inline-block;}</style>",
     "</head>",
     `<body><div id="gdm-image-mount">${fragment}</div></body>`,
     "</html>",
   ].join("");
 }
 
-async function applyBackgroundOverride(page: Page, background: string | null | undefined): Promise<void> {
+async function applyBackgroundOverride(
+  page: Page,
+  background: string | null | undefined,
+): Promise<void> {
   if (background === undefined) {
     return;
   }
 
-  await page.evaluate(({ backgroundValue }) => {
-    const root = document.querySelector("#gdm-image-mount > *");
+  await page.evaluate(
+    ({ backgroundValue }) => {
+      const root = document.querySelector("#gdm-image-mount > *");
 
-    if (root instanceof HTMLElement) {
-      root.style.setProperty("--gdm-layout-background", backgroundValue ?? "transparent");
-    }
-
-    document.body.style.background = backgroundValue ?? "transparent";
-  }, { backgroundValue: background });
-}
-
-async function waitForAssetsAndLayout(page: Page, timeoutMs: number): Promise<void> {
-  await page.evaluate(async ({ timeout }) => {
-    const imagePromises = Array.from(document.images, (image) => {
-      if (image.complete) {
-        return Promise.resolve();
+      if (root instanceof HTMLElement) {
+        root.style.setProperty(
+          "--gdm-layout-background",
+          backgroundValue ?? "transparent",
+        );
       }
 
-      return new Promise<void>((resolve) => {
-        const finish = (): void => {
-          window.clearTimeout(timer);
-          resolve();
-        };
+      document.body.style.background = backgroundValue ?? "transparent";
+    },
+    { backgroundValue: background },
+  );
+}
 
-        const timer = window.setTimeout(finish, timeout);
+async function waitForAssetsAndLayout(
+  page: Page,
+  timeoutMs: number,
+): Promise<void> {
+  await page.evaluate(
+    async ({ timeout }) => {
+      const imagePromises = Array.from(document.images, (image) => {
+        if (image.complete) {
+          return Promise.resolve();
+        }
 
-        image.addEventListener("load", finish, { once: true });
-        image.addEventListener("error", finish, { once: true });
+        return new Promise<void>((resolve) => {
+          const finish = (): void => {
+            window.clearTimeout(timer);
+            resolve();
+          };
+
+          const timer = window.setTimeout(finish, timeout);
+
+          image.addEventListener("load", finish, { once: true });
+          image.addEventListener("error", finish, { once: true });
+        });
       });
-    });
 
-    if ("fonts" in document) {
-      await document.fonts.ready;
-    }
+      if ("fonts" in document) {
+        await document.fonts.ready;
+      }
 
-    await Promise.all(imagePromises);
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => resolve());
+      await Promise.all(imagePromises);
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => resolve());
+        });
       });
-    });
-  }, { timeout: timeoutMs });
+    },
+    { timeout: timeoutMs },
+  );
 }
 
 async function waitForAnimationFrame(page: Page): Promise<void> {
@@ -258,7 +315,13 @@ async function captureWebpScreenshot(
   try {
     const screenshotOptions: {
       format: "webp";
-      clip?: { x: number; y: number; width: number; height: number; scale: number };
+      clip?: {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        scale: number;
+      };
       fromSurface: true;
       captureBeyondViewport: boolean;
     } = {
@@ -277,7 +340,10 @@ async function captureWebpScreenshot(
       };
     }
 
-    const screenshot = await session.send("Page.captureScreenshot", screenshotOptions);
+    const screenshot = await session.send(
+      "Page.captureScreenshot",
+      screenshotOptions,
+    );
 
     return new Uint8Array(Buffer.from(screenshot.data, "base64"));
   } finally {
