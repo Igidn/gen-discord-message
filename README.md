@@ -10,7 +10,7 @@ Schema-first fake Discord message renderer for HTML and images.
 ## Install
 
 ```bash
-npm install gen-discord-message
+npm install Igidn/gen-discord-message
 ```
 
 ## Quick start
