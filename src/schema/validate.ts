@@ -1,3 +1,4 @@
+import { parseContent } from "../content/parse.js";
 import type { ThemeTokens } from "./types.js";
 
 export interface ValidationIssue {
@@ -11,7 +12,13 @@ export interface ValidationResult {
   issues: ValidationIssue[];
 }
 
-const DOCUMENT_KEYS = ["version", "theme", "layout", "assets", "messages"] as const;
+const DOCUMENT_KEYS = [
+  "version",
+  "theme",
+  "layout",
+  "assets",
+  "messages",
+] as const;
 const MESSAGE_KEYS = [
   "id",
   "author",
@@ -24,18 +31,35 @@ const MESSAGE_KEYS = [
   "reactions",
   "badges",
 ] as const;
-const AUTHOR_KEYS = ["id", "name", "avatarUrl", "accentColor", "bot", "system"] as const;
+const AUTHOR_KEYS = [
+  "id",
+  "name",
+  "avatarUrl",
+  "accentColor",
+  "bot",
+  "system",
+] as const;
 const THEME_REFERENCE_KEYS = ["preset"] as const;
 const THEME_INPUT_KEYS = ["name", "extends", "tokens"] as const;
 const LAYOUT_KEYS = ["width", "padding", "background"] as const;
-const ASSET_KEYS = ["fetchRemoteAssets", "avatarFallbackUrl", "requestTimeoutMs"] as const;
+const ASSET_KEYS = [
+  "fetchRemoteAssets",
+  "avatarFallbackUrl",
+  "requestTimeoutMs",
+] as const;
 const TEXT_NODE_KEYS = ["type", "value"] as const;
 const MENTION_NODE_KEYS = ["type", "value", "color"] as const;
 const LINK_NODE_KEYS = ["type", "href", "label"] as const;
 const INLINE_CODE_NODE_KEYS = ["type", "value"] as const;
 const CONTAINER_NODE_KEYS = ["type", "children"] as const;
 const LINE_BREAK_NODE_KEYS = ["type"] as const;
-const DEFERRED_MESSAGE_FIELDS = ["reply", "attachments", "embed", "reactions", "badges"] as const;
+const DEFERRED_MESSAGE_FIELDS = [
+  "reply",
+  "attachments",
+  "embed",
+  "reactions",
+  "badges",
+] as const;
 const SUPPORTED_NODE_TYPES = new Set([
   "text",
   "mention",
@@ -45,7 +69,13 @@ const SUPPORTED_NODE_TYPES = new Set([
   "emphasis",
   "lineBreak",
 ]);
-const DEFERRED_NODE_TYPES = new Set(["emoji", "channelMention", "codeBlock", "spoiler", "timestampToken"]);
+const DEFERRED_NODE_TYPES = new Set([
+  "emoji",
+  "channelMention",
+  "codeBlock",
+  "spoiler",
+  "timestampToken",
+]);
 const COLOR_TOKEN_KEYS = new Set<keyof ThemeTokens>([
   "colorBackground",
   "colorTextPrimary",
@@ -67,7 +97,10 @@ const STRING_TOKEN_KEYS = new Set<keyof ThemeTokens>([
   "radiusInline",
   "sizeAvatar",
 ]);
-const NUMBER_TOKEN_KEYS = new Set<keyof ThemeTokens>(["fontWeightRegular", "fontWeightMedium"]);
+const NUMBER_TOKEN_KEYS = new Set<keyof ThemeTokens>([
+  "fontWeightRegular",
+  "fontWeightMedium",
+]);
 const THEME_TOKEN_KEYS = [
   "colorBackground",
   "colorTextPrimary",
@@ -118,7 +151,12 @@ function validateRootDocument(
     validateUnknownKeys(input, DOCUMENT_KEYS, "$", issues);
 
     if (Object.hasOwn(input, "version") && input.version !== 1) {
-      pushIssue(issues, "version", "invalid_literal", "version must be 1 when provided.");
+      pushIssue(
+        issues,
+        "version",
+        "invalid_literal",
+        "version must be 1 when provided.",
+      );
     }
 
     if (Object.hasOwn(input, "theme")) {
@@ -134,7 +172,12 @@ function validateRootDocument(
     }
 
     if (!Object.hasOwn(input, "messages")) {
-      pushIssue(issues, "messages", "missing_required_field", "messages is required.");
+      pushIssue(
+        issues,
+        "messages",
+        "missing_required_field",
+        "messages is required.",
+      );
       return;
     }
 
@@ -172,15 +215,30 @@ function validateTheme(
     validateUnknownKeys(value, THEME_INPUT_KEYS, path, issues);
 
     if (Object.hasOwn(value, "name")) {
-      validateNonEmptyString(value.name, joinPath(path, "name"), "theme name", issues);
+      validateNonEmptyString(
+        value.name,
+        joinPath(path, "name"),
+        "theme name",
+        issues,
+      );
     }
 
     if (Object.hasOwn(value, "extends")) {
-      validateThemeReference(value.extends, joinPath(path, "extends"), issues, ancestors);
+      validateThemeReference(
+        value.extends,
+        joinPath(path, "extends"),
+        issues,
+        ancestors,
+      );
     }
 
     if (Object.hasOwn(value, "tokens")) {
-      validateThemeTokens(value.tokens, joinPath(path, "tokens"), issues, ancestors);
+      validateThemeTokens(
+        value.tokens,
+        joinPath(path, "tokens"),
+        issues,
+        ancestors,
+      );
     }
   });
 }
@@ -192,7 +250,12 @@ function validateThemeReference(
   ancestors: Set<object>,
 ): void {
   if (!isPlainObject(value)) {
-    pushIssue(issues, path, "invalid_type", "theme reference must be an object.");
+    pushIssue(
+      issues,
+      path,
+      "invalid_type",
+      "theme reference must be an object.",
+    );
     return;
   }
 
@@ -253,7 +316,10 @@ function validateThemeTokens(
       }
 
       if (NUMBER_TOKEN_KEYS.has(tokenKey)) {
-        validateFiniteNumber(tokenValue, tokenPath, `${tokenKey}`, issues, { min: 0, exclusiveMin: true });
+        validateFiniteNumber(tokenValue, tokenPath, `${tokenKey}`, issues, {
+          min: 0,
+          exclusiveMin: true,
+        });
         continue;
       }
 
@@ -263,11 +329,18 @@ function validateThemeTokens(
           continue;
         }
 
-        validateFiniteNumber(tokenValue, tokenPath, tokenKey, issues, { min: 0, exclusiveMin: true });
+        validateFiniteNumber(tokenValue, tokenPath, tokenKey, issues, {
+          min: 0,
+          exclusiveMin: true,
+        });
         continue;
       }
 
-      if (tokenKey === "density" && tokenValue !== "comfortable" && tokenValue !== "compact") {
+      if (
+        tokenKey === "density" &&
+        tokenValue !== "comfortable" &&
+        tokenValue !== "compact"
+      ) {
         pushIssue(
           issues,
           tokenPath,
@@ -294,20 +367,37 @@ function validateLayout(
     validateUnknownKeys(value, LAYOUT_KEYS, path, issues);
 
     if (Object.hasOwn(value, "width")) {
-      validateFiniteNumber(value.width, joinPath(path, "width"), "layout width", issues, {
-        min: 0,
-        exclusiveMin: true,
-      });
+      validateFiniteNumber(
+        value.width,
+        joinPath(path, "width"),
+        "layout width",
+        issues,
+        {
+          min: 0,
+          exclusiveMin: true,
+        },
+      );
     }
 
     if (Object.hasOwn(value, "padding")) {
-      validateFiniteNumber(value.padding, joinPath(path, "padding"), "layout padding", issues, {
-        min: 0,
-      });
+      validateFiniteNumber(
+        value.padding,
+        joinPath(path, "padding"),
+        "layout padding",
+        issues,
+        {
+          min: 0,
+        },
+      );
     }
 
     if (Object.hasOwn(value, "background") && value.background !== null) {
-      validateColorString(value.background, joinPath(path, "background"), "layout background", issues);
+      validateColorString(
+        value.background,
+        joinPath(path, "background"),
+        "layout background",
+        issues,
+      );
     }
   });
 }
@@ -326,7 +416,10 @@ function validateAssets(
   withAncestor(value, path, issues, ancestors, () => {
     validateUnknownKeys(value, ASSET_KEYS, path, issues);
 
-    if (Object.hasOwn(value, "fetchRemoteAssets") && typeof value.fetchRemoteAssets !== "boolean") {
+    if (
+      Object.hasOwn(value, "fetchRemoteAssets") &&
+      typeof value.fetchRemoteAssets !== "boolean"
+    ) {
       pushIssue(
         issues,
         joinPath(path, "fetchRemoteAssets"),
@@ -335,15 +428,29 @@ function validateAssets(
       );
     }
 
-    if (Object.hasOwn(value, "avatarFallbackUrl") && value.avatarFallbackUrl !== null) {
-      validateUrlString(value.avatarFallbackUrl, joinPath(path, "avatarFallbackUrl"), "avatarFallbackUrl", issues);
+    if (
+      Object.hasOwn(value, "avatarFallbackUrl") &&
+      value.avatarFallbackUrl !== null
+    ) {
+      validateUrlString(
+        value.avatarFallbackUrl,
+        joinPath(path, "avatarFallbackUrl"),
+        "avatarFallbackUrl",
+        issues,
+      );
     }
 
     if (Object.hasOwn(value, "requestTimeoutMs")) {
-      validateFiniteNumber(value.requestTimeoutMs, joinPath(path, "requestTimeoutMs"), "requestTimeoutMs", issues, {
-        min: 0,
-        exclusiveMin: true,
-      });
+      validateFiniteNumber(
+        value.requestTimeoutMs,
+        joinPath(path, "requestTimeoutMs"),
+        "requestTimeoutMs",
+        issues,
+        {
+          min: 0,
+          exclusiveMin: true,
+        },
+      );
     }
   });
 }
@@ -360,7 +467,12 @@ function validateMessages(
   }
 
   if (value.length === 0) {
-    pushIssue(issues, path, "empty_collection", "messages must contain at least one item.");
+    pushIssue(
+      issues,
+      path,
+      "empty_collection",
+      "messages must contain at least one item.",
+    );
     return;
   }
 
@@ -386,11 +498,21 @@ function validateMessage(
     validateUnknownKeys(value, MESSAGE_KEYS, path, issues);
 
     if (Object.hasOwn(value, "id") && typeof value.id !== "string") {
-      pushIssue(issues, joinPath(path, "id"), "invalid_type", "message id must be a string.");
+      pushIssue(
+        issues,
+        joinPath(path, "id"),
+        "invalid_type",
+        "message id must be a string.",
+      );
     }
 
     if (!Object.hasOwn(value, "author")) {
-      pushIssue(issues, joinPath(path, "author"), "missing_required_field", "author is required.");
+      pushIssue(
+        issues,
+        joinPath(path, "author"),
+        "missing_required_field",
+        "author is required.",
+      );
     } else {
       validateAuthor(value.author, joinPath(path, "author"), issues, ancestors);
     }
@@ -400,13 +522,28 @@ function validateMessage(
     }
 
     if (!Object.hasOwn(value, "content")) {
-      pushIssue(issues, joinPath(path, "content"), "missing_required_field", "content is required.");
+      pushIssue(
+        issues,
+        joinPath(path, "content"),
+        "missing_required_field",
+        "content is required.",
+      );
     } else {
-      validateContent(value.content, joinPath(path, "content"), issues, ancestors);
+      validateContent(
+        value.content,
+        joinPath(path, "content"),
+        issues,
+        ancestors,
+      );
     }
 
     if (Object.hasOwn(value, "edited") && typeof value.edited !== "boolean") {
-      pushIssue(issues, joinPath(path, "edited"), "invalid_type", "edited must be a boolean.");
+      pushIssue(
+        issues,
+        joinPath(path, "edited"),
+        "invalid_type",
+        "edited must be a boolean.",
+      );
     }
 
     for (const field of DEFERRED_MESSAGE_FIELDS) {
@@ -437,47 +574,96 @@ function validateAuthor(
     validateUnknownKeys(value, AUTHOR_KEYS, path, issues);
 
     if (Object.hasOwn(value, "id") && typeof value.id !== "string") {
-      pushIssue(issues, joinPath(path, "id"), "invalid_type", "author id must be a string.");
+      pushIssue(
+        issues,
+        joinPath(path, "id"),
+        "invalid_type",
+        "author id must be a string.",
+      );
     }
 
     if (!Object.hasOwn(value, "name")) {
-      pushIssue(issues, joinPath(path, "name"), "missing_required_field", "author name is required.");
+      pushIssue(
+        issues,
+        joinPath(path, "name"),
+        "missing_required_field",
+        "author name is required.",
+      );
     } else {
-      validateNonEmptyString(value.name, joinPath(path, "name"), "author name", issues);
+      validateNonEmptyString(
+        value.name,
+        joinPath(path, "name"),
+        "author name",
+        issues,
+      );
     }
 
     if (Object.hasOwn(value, "avatarUrl")) {
-      validateUrlString(value.avatarUrl, joinPath(path, "avatarUrl"), "avatarUrl", issues);
+      validateUrlString(
+        value.avatarUrl,
+        joinPath(path, "avatarUrl"),
+        "avatarUrl",
+        issues,
+      );
     }
 
     if (Object.hasOwn(value, "accentColor")) {
-      validateColorString(value.accentColor, joinPath(path, "accentColor"), "accentColor", issues);
+      validateColorString(
+        value.accentColor,
+        joinPath(path, "accentColor"),
+        "accentColor",
+        issues,
+      );
     }
 
     if (Object.hasOwn(value, "bot") && typeof value.bot !== "boolean") {
-      pushIssue(issues, joinPath(path, "bot"), "invalid_type", "bot must be a boolean.");
+      pushIssue(
+        issues,
+        joinPath(path, "bot"),
+        "invalid_type",
+        "bot must be a boolean.",
+      );
     }
 
     if (Object.hasOwn(value, "system") && typeof value.system !== "boolean") {
-      pushIssue(issues, joinPath(path, "system"), "invalid_type", "system must be a boolean.");
+      pushIssue(
+        issues,
+        joinPath(path, "system"),
+        "invalid_type",
+        "system must be a boolean.",
+      );
     }
   });
 }
 
-function validateTimestamp(value: unknown, path: string, issues: ValidationIssue[]): void {
+function validateTimestamp(
+  value: unknown,
+  path: string,
+  issues: ValidationIssue[],
+): void {
   if (typeof value === "string") {
     return;
   }
 
   if (value instanceof Date) {
     if (Number.isNaN(value.getTime())) {
-      pushIssue(issues, path, "invalid_literal", "timestamp must be a valid Date.");
+      pushIssue(
+        issues,
+        path,
+        "invalid_literal",
+        "timestamp must be a valid Date.",
+      );
     }
 
     return;
   }
 
-  pushIssue(issues, path, "invalid_type", "timestamp must be a string or Date.");
+  pushIssue(
+    issues,
+    path,
+    "invalid_type",
+    "timestamp must be a string or Date.",
+  );
 }
 
 function validateContent(
@@ -486,13 +672,35 @@ function validateContent(
   issues: ValidationIssue[],
   ancestors: Set<object>,
 ): void {
+  if (typeof value === "string") {
+    const parsedContent = parseContent(value);
+
+    if (!parsedContent.ok) {
+      parsedContent.issues.forEach((issue) => {
+        pushIssue(issues, path, issue.code, issue.message);
+      });
+    }
+
+    return;
+  }
+
   if (!Array.isArray(value)) {
-    pushIssue(issues, path, "invalid_type", "content must be an array.");
+    pushIssue(
+      issues,
+      path,
+      "invalid_type",
+      "content must be a string or an array.",
+    );
     return;
   }
 
   if (value.length === 0) {
-    pushIssue(issues, path, "empty_collection", "content must contain at least one node in v1.");
+    pushIssue(
+      issues,
+      path,
+      "empty_collection",
+      "content must contain at least one node in v1.",
+    );
     return;
   }
 
@@ -516,12 +724,22 @@ function validateContentNode(
 
   withAncestor(value, path, issues, ancestors, () => {
     if (!Object.hasOwn(value, "type")) {
-      pushIssue(issues, joinPath(path, "type"), "missing_required_field", "content node type is required.");
+      pushIssue(
+        issues,
+        joinPath(path, "type"),
+        "missing_required_field",
+        "content node type is required.",
+      );
       return;
     }
 
     if (typeof value.type !== "string") {
-      pushIssue(issues, joinPath(path, "type"), "invalid_type", "content node type must be a string.");
+      pushIssue(
+        issues,
+        joinPath(path, "type"),
+        "invalid_type",
+        "content node type must be a string.",
+      );
       return;
     }
 
@@ -548,29 +766,59 @@ function validateContentNode(
     switch (value.type) {
       case "text":
         validateUnknownKeys(value, TEXT_NODE_KEYS, path, issues);
-        validateString(value.value, joinPath(path, "value"), "text value", issues);
+        validateString(
+          value.value,
+          joinPath(path, "value"),
+          "text value",
+          issues,
+        );
         break;
       case "mention":
         validateUnknownKeys(value, MENTION_NODE_KEYS, path, issues);
-        validateString(value.value, joinPath(path, "value"), "mention value", issues);
+        validateString(
+          value.value,
+          joinPath(path, "value"),
+          "mention value",
+          issues,
+        );
 
         if (Object.hasOwn(value, "color")) {
-          validateColorString(value.color, joinPath(path, "color"), "mention color", issues);
+          validateColorString(
+            value.color,
+            joinPath(path, "color"),
+            "mention color",
+            issues,
+          );
         }
 
         break;
       case "link":
         validateUnknownKeys(value, LINK_NODE_KEYS, path, issues);
-        validateUrlString(value.href, joinPath(path, "href"), "link href", issues);
+        validateUrlString(
+          value.href,
+          joinPath(path, "href"),
+          "link href",
+          issues,
+        );
 
         if (Object.hasOwn(value, "label")) {
-          validateString(value.label, joinPath(path, "label"), "link label", issues);
+          validateString(
+            value.label,
+            joinPath(path, "label"),
+            "link label",
+            issues,
+          );
         }
 
         break;
       case "inlineCode":
         validateUnknownKeys(value, INLINE_CODE_NODE_KEYS, path, issues);
-        validateString(value.value, joinPath(path, "value"), "inlineCode value", issues);
+        validateString(
+          value.value,
+          joinPath(path, "value"),
+          "inlineCode value",
+          issues,
+        );
         break;
       case "strong":
       case "emphasis":
@@ -584,7 +832,12 @@ function validateContentNode(
             `${value.type} children is required.`,
           );
         } else {
-          validateChildContent(value.children, joinPath(path, "children"), issues, ancestors);
+          validateChildContent(
+            value.children,
+            joinPath(path, "children"),
+            issues,
+            ancestors,
+          );
         }
 
         break;
@@ -625,7 +878,12 @@ function validateUnknownKeys(
 
   for (const key of Object.keys(value)) {
     if (!allowed.has(key)) {
-      pushIssue(issues, joinPath(path, key), "unknown_field", `Unknown field: ${key}.`);
+      pushIssue(
+        issues,
+        joinPath(path, key),
+        "unknown_field",
+        `Unknown field: ${key}.`,
+      );
     }
   }
 }
@@ -665,7 +923,12 @@ function validateFiniteNumber(
   constraints: { min?: number; exclusiveMin?: boolean } = {},
 ): void {
   if (typeof value !== "number" || !Number.isFinite(value)) {
-    pushIssue(issues, path, "invalid_type", `${label} must be a finite number.`);
+    pushIssue(
+      issues,
+      path,
+      "invalid_type",
+      `${label} must be a finite number.`,
+    );
     return;
   }
 
@@ -673,7 +936,11 @@ function validateFiniteNumber(
     return;
   }
 
-  if (constraints.exclusiveMin ? value <= constraints.min : value < constraints.min) {
+  if (
+    constraints.exclusiveMin
+      ? value <= constraints.min
+      : value < constraints.min
+  ) {
     pushIssue(
       issues,
       path,
@@ -719,7 +986,12 @@ function validateColorString(
   }
 
   if (!isColorString(value)) {
-    pushIssue(issues, path, "invalid_color", `${label} must be a valid color string.`);
+    pushIssue(
+      issues,
+      path,
+      "invalid_color",
+      `${label} must be a valid color string.`,
+    );
   }
 }
 
@@ -731,7 +1003,12 @@ function withAncestor(
   callback: () => void,
 ): void {
   if (ancestors.has(value)) {
-    pushIssue(issues, path, "invalid_structure", "Recursive structures are not supported.");
+    pushIssue(
+      issues,
+      path,
+      "invalid_structure",
+      "Recursive structures are not supported.",
+    );
     return;
   }
 
@@ -757,8 +1034,12 @@ function isColorString(value: string): boolean {
 
   return (
     /^#(?:[\da-f]{3}|[\da-f]{4}|[\da-f]{6}|[\da-f]{8})$/iu.test(trimmed) ||
-    /^(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\(.+\)$/iu.test(trimmed) ||
-    /^(?:transparent|currentColor|inherit|initial|unset|revert|revert-layer)$/u.test(trimmed) ||
+    /^(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\(.+\)$/iu.test(
+      trimmed,
+    ) ||
+    /^(?:transparent|currentColor|inherit|initial|unset|revert|revert-layer)$/u.test(
+      trimmed,
+    ) ||
     /^[a-z][a-z-]*$/iu.test(trimmed)
   );
 }

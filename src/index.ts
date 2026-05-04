@@ -8,8 +8,16 @@ export {
   type ValidationIssue,
   type ValidationResult,
 } from "./schema/validate.js";
-export { renderToHtml, type RenderHtmlOptions, type RenderHtmlResult } from "./render/html/index.js";
-export { renderToImage, type RenderImageOptions, type RenderImageResult } from "./render/image/index.js";
+export {
+  renderToHtml,
+  type RenderHtmlOptions,
+  type RenderHtmlResult,
+} from "./render/html/index.js";
+export {
+  renderToImage,
+  type RenderImageOptions,
+  type RenderImageResult,
+} from "./render/image/index.js";
 export type {
   AssetOptions,
   ContentNode,
@@ -23,6 +31,7 @@ export type {
   LineBreakNode,
   LinkNode,
   MentionNode,
+  MessageContentInput,
   StrongNode,
   TextNode,
   ThemeDefinition,

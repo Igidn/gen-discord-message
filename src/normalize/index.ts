@@ -6,16 +6,15 @@ import {
   type AssetResolutionStatus,
   type ResolvedAssetReference,
 } from "../assets/index.js";
-import {
-  validateDocument,
-  type ValidationIssue,
-} from "../schema/validate.js";
+import { parseContent } from "../content/parse.js";
+import { validateDocument, type ValidationIssue } from "../schema/validate.js";
 import type {
   AssetOptions,
   ContentNode,
   DiscordAuthor,
   DiscordMessage,
   DiscordMessageDocument,
+  MessageContentInput,
   ThemeDefinition,
   ThemeReference,
 } from "../schema/types.js";
@@ -31,7 +30,8 @@ const DEFAULT_LAYOUT_WIDTH = 550;
 const DEFAULT_LAYOUT_PADDING = 16;
 const DEFAULT_FETCH_REMOTE_ASSETS = true;
 const DEFAULT_REQUEST_TIMEOUT_MS = 10_000;
-const DISCORD_LOGO_FALLBACK_URL = "https://discord.com/assets/18e336a74a159cfd.png";
+const DISCORD_LOGO_FALLBACK_URL =
+  "https://discord.com/assets/18e336a74a159cfd.png";
 
 export interface NormalizeDocumentOptions {
   fetch?: AssetResolverFetch;
@@ -132,7 +132,9 @@ export class NormalizationError extends Error {
   readonly issues: ValidationIssue[];
 
   constructor(issues: ValidationIssue[]) {
-    super(`Document normalization failed with ${issues.length} validation issue(s).`);
+    super(
+      `Document normalization failed with ${issues.length} validation issue(s).`,
+    );
     this.name = "NormalizationError";
     this.issues = issues;
   }
@@ -153,7 +155,9 @@ export async function normalizeDocument(
   const layout = normalizeLayout(input.layout, theme);
   const fetchImplementation = options.fetch ?? globalThis.fetch;
   const messages = await Promise.all(
-    input.messages.map((message) => normalizeMessage(message, theme, assets, fetchImplementation)),
+    input.messages.map((message) =>
+      normalizeMessage(message, theme, assets, fetchImplementation),
+    ),
   );
 
   return {
@@ -166,7 +170,9 @@ export async function normalizeDocument(
   };
 }
 
-function normalizeTheme(input: DiscordMessageDocument["theme"] | undefined): ThemeDefinition {
+function normalizeTheme(
+  input: DiscordMessageDocument["theme"] | undefined,
+): ThemeDefinition {
   if (input === undefined) {
     return resolveThemeReference({ preset: "discordDark" });
   }
@@ -178,11 +184,15 @@ function normalizeTheme(input: DiscordMessageDocument["theme"] | undefined): The
   return defineTheme(input);
 }
 
-function normalizeAssetOptions(input: AssetOptions | undefined): NormalizedAssetOptions {
+function normalizeAssetOptions(
+  input: AssetOptions | undefined,
+): NormalizedAssetOptions {
   return {
     fetchRemoteAssets: input?.fetchRemoteAssets ?? DEFAULT_FETCH_REMOTE_ASSETS,
     avatarFallbackUrl:
-      input?.avatarFallbackUrl === undefined ? DISCORD_LOGO_FALLBACK_URL : input.avatarFallbackUrl,
+      input?.avatarFallbackUrl === undefined
+        ? DISCORD_LOGO_FALLBACK_URL
+        : input.avatarFallbackUrl,
     requestTimeoutMs: input?.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS,
   };
 }
@@ -194,7 +204,10 @@ function normalizeLayout(
   return {
     width: input?.width ?? DEFAULT_LAYOUT_WIDTH,
     padding: input?.padding ?? DEFAULT_LAYOUT_PADDING,
-    background: input?.background === undefined ? theme.tokens.colorBackground : input.background,
+    background:
+      input?.background === undefined
+        ? theme.tokens.colorBackground
+        : input.background,
   };
 }
 
@@ -208,7 +221,7 @@ async function normalizeMessage(
     id: input.id ?? null,
     author: await normalizeAuthor(input.author, assets, fetchImplementation),
     timestamp: normalizeTimestamp(input.timestamp),
-    content: normalizeContentNodes(input.content, theme),
+    content: normalizeMessageContent(input.content, theme),
     edited: input.edited ?? false,
   };
 }
@@ -240,7 +253,9 @@ async function normalizeAuthor(
   };
 }
 
-function normalizeTimestamp(input: DiscordMessage["timestamp"]): NormalizedTimestamp | null {
+function normalizeTimestamp(
+  input: DiscordMessage["timestamp"],
+): NormalizedTimestamp | null {
   if (input === undefined) {
     return null;
   }
@@ -294,6 +309,29 @@ function formatAbsoluteTimestamp(date: Date): string {
   return `${month}/${day}/${year} ${timeStr}`;
 }
 
+function normalizeMessageContent(
+  input: MessageContentInput,
+  theme: ThemeDefinition,
+): NormalizedContentNode[] {
+  return normalizeContentNodes(coerceContentInputToNodes(input), theme);
+}
+
+function coerceContentInputToNodes(input: MessageContentInput): ContentNode[] {
+  if (typeof input !== "string") {
+    return input;
+  }
+
+  const parsedContent = parseContent(input);
+
+  if (!parsedContent.ok) {
+    throw new TypeError(
+      `Content parsing failed during normalization: ${parsedContent.issues.map((issue) => issue.message).join(" ")}`,
+    );
+  }
+
+  return parsedContent.nodes;
+}
+
 function normalizeContentNodes(
   input: ContentNode[],
   theme: ThemeDefinition,
@@ -345,11 +383,10 @@ function normalizeContentNode(
   }
 }
 
-function isThemeReference(value: DiscordMessageDocument["theme"]): value is ThemeReference {
+function isThemeReference(
+  value: DiscordMessageDocument["theme"],
+): value is ThemeReference {
   return value !== undefined && "preset" in value;
 }
 
-export type {
-  AssetResolutionErrorCode,
-  AssetResolutionStatus,
-};
+export type { AssetResolutionErrorCode, AssetResolutionStatus };

@@ -50,12 +50,44 @@ describe("renderToHtml", () => {
     expect(first.html).toContain('<span class="gdm-mention"');
     expect(first.html).toContain('<strong class="gdm-strong">bold</strong>');
     expect(first.html).toContain('<em class="gdm-emphasis">italic</em>');
-    expect(first.html).toContain('<code class="gdm-inline-code">const x = 1</code>');
-    expect(first.html).toContain('<a class="gdm-link" href="https://example.com"');
+    expect(first.html).toContain(
+      '<code class="gdm-inline-code">const x = 1</code>',
+    );
+    expect(first.html).toContain(
+      '<a class="gdm-link" href="https://example.com"',
+    );
     expect(first.html).toContain("<br>");
-    expect(first.html).toContain('<span class="gdm-edited" aria-label="edited">(edited)</span>');
+    expect(first.html).toContain(
+      '<span class="gdm-edited" aria-label="edited">(edited)</span>',
+    );
     expect(first.css).toContain(".gdm-root");
     expect(first.css).toContain(".gdm-message");
+  });
+
+  it("renders shorthand string content through the same semantic html path", async () => {
+    const result = await renderToHtml({
+      assets: { fetchRemoteAssets: false },
+      messages: [
+        {
+          author: { name: "Eris" },
+          content:
+            "I'm thinking about **Markdown** syntax! <@{username}>\nCheck `renderToHtml` at https://example.com/docs.",
+        },
+      ],
+    });
+
+    expect(result.html).toContain(
+      '<strong class="gdm-strong">Markdown</strong>',
+    );
+    expect(result.html).toContain('<span class="gdm-mention"');
+    expect(result.html).toContain(">@username<");
+    expect(result.html).toContain("<br>");
+    expect(result.html).toContain(
+      '<code class="gdm-inline-code">renderToHtml</code>',
+    );
+    expect(result.html).toContain(
+      '<a class="gdm-link" href="https://example.com/docs" rel="noreferrer noopener" target="_blank">https://example.com/docs</a>.',
+    );
   });
 
   it("returns a full html document with inline scoped css when requested", async () => {

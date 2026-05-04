@@ -6,11 +6,13 @@ export interface DiscordMessageDocument {
   messages: DiscordMessage[];
 }
 
+export type MessageContentInput = string | ContentNode[];
+
 export interface DiscordMessage {
   id?: string;
   author: DiscordAuthor;
   timestamp?: string | Date;
-  content: ContentNode[];
+  content: MessageContentInput;
   edited?: boolean;
   reply?: unknown;
   attachments?: unknown[];
@@ -77,7 +79,9 @@ export type ContentNode =
   | EmphasisNode
   | LineBreakNode;
 
-export type ThemeReference = { preset: "discordDark" } | { preset: "discordLight" };
+export type ThemeReference =
+  | { preset: "discordDark" }
+  | { preset: "discordLight" };
 
 export interface ThemeDefinitionInput {
   name?: string;

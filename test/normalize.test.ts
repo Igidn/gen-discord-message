@@ -1,8 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { normalizeDocument, NormalizationError } from "../src/normalize/index.js";
+import {
+  normalizeDocument,
+  NormalizationError,
+} from "../src/normalize/index.js";
 import type { DiscordMessageDocument } from "../src/schema/types.js";
-import { discordDarkTheme, resolveThemeCssVariables } from "../src/theme/index.js";
+import {
+  discordDarkTheme,
+  resolveThemeCssVariables,
+} from "../src/theme/index.js";
 
 describe("normalizeDocument", () => {
   it("applies defaults and produces deterministic normalized output", async () => {
@@ -161,7 +167,9 @@ describe("normalizeDocument", () => {
 
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(normalized.theme.name).toBe("Custom Light");
-    expect(normalized.themeVariables["--gdm-color-mention-background"]).toBe("#123456");
+    expect(normalized.themeVariables["--gdm-color-mention-background"]).toBe(
+      "#123456",
+    );
     expect(normalized.layout).toEqual({
       width: 560,
       padding: 24,
@@ -184,11 +192,58 @@ describe("normalizeDocument", () => {
         errorCode: null,
       },
     });
-    expect(normalized.messages[0]?.author.avatar.resolvedUrl).toMatch(/^data:image\/png;base64,/u);
+    expect(normalized.messages[0]?.author.avatar.resolvedUrl).toMatch(
+      /^data:image\/png;base64,/u,
+    );
     expect(normalized.messages[0]?.content[0]).toEqual({
       type: "mention",
       value: "@here",
       color: "#123456",
+    });
+  });
+
+  it("normalizes shorthand string content into the canonical content AST", async () => {
+    const normalized = await normalizeDocument({
+      assets: { fetchRemoteAssets: false },
+      messages: [
+        {
+          author: { name: "Eris" },
+          timestamp: "Today at 8:12 PM",
+          content:
+            "I'm thinking about switching to **Markdown** syntax! <@{username}>\nCheck `renderToHtml` at https://example.com/docs.",
+        },
+      ],
+    });
+
+    expect(normalized.messages[0]?.content).toEqual([
+      { type: "text", value: "I'm thinking about switching to " },
+      {
+        type: "strong",
+        children: [{ type: "text", value: "Markdown" }],
+      },
+      { type: "text", value: " syntax! " },
+      {
+        type: "mention",
+        value: "@username",
+        color: discordDarkTheme.tokens.colorMentionBackground,
+      },
+      { type: "lineBreak" },
+      { type: "text", value: "Check " },
+      { type: "inlineCode", value: "renderToHtml" },
+      { type: "text", value: " at " },
+      {
+        type: "link",
+        href: "https://example.com/docs",
+        label: "https://example.com/docs",
+      },
+      { type: "text", value: "." },
+    ]);
+    expect(normalized.messages[0]?.timestamp).toEqual({
+      iso: "",
+      epochMs: 0,
+      dateText: "",
+      timeText: "",
+      displayText: "Today at 8:12 PM",
     });
   });
 
@@ -226,7 +281,9 @@ describe("normalizeDocument", () => {
   });
 
   it("throws structured validation issues for invalid documents", async () => {
-    await expect(normalizeDocument({ messages: [] })).rejects.toBeInstanceOf(NormalizationError);
+    await expect(normalizeDocument({ messages: [] })).rejects.toBeInstanceOf(
+      NormalizationError,
+    );
     await expect(normalizeDocument({ messages: [] })).rejects.toMatchObject({
       issues: [
         {

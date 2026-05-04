@@ -39,9 +39,17 @@ describe("validateDocument", () => {
           timestamp: "2026-04-29T18:30:00Z",
           content: [
             { type: "text", value: "Ship it " },
-            { type: "mention", value: "@team", color: "rgba(88, 101, 242, 0.3)" },
+            {
+              type: "mention",
+              value: "@team",
+              color: "rgba(88, 101, 242, 0.3)",
+            },
             { type: "text", value: " and check " },
-            { type: "link", href: "https://example.com/docs", label: "the docs" },
+            {
+              type: "link",
+              href: "https://example.com/docs",
+              label: "the docs",
+            },
             { type: "text", value: " with " },
             { type: "inlineCode", value: "renderToHtml" },
             {
@@ -58,6 +66,21 @@ describe("validateDocument", () => {
             { type: "text", value: "done" },
           ],
           edited: true,
+        },
+      ],
+    });
+
+    expect(result).toEqual({ valid: true, issues: [] });
+  });
+
+  it("accepts shorthand string content", () => {
+    const result = validateDocument({
+      messages: [
+        {
+          author: { name: "Eris" },
+          timestamp: "Today at 8:12 PM",
+          content:
+            "I\nuse **Markdown** and *mentions* with <@{username}> plus https://example.com/docs.",
         },
       ],
     });
@@ -195,6 +218,35 @@ describe("validateDocument", () => {
         path: "messages[0].content[0].extra",
         code: "unknown_field",
         message: "Unknown field: extra.",
+      },
+    ]);
+  });
+
+  it("rejects malformed shorthand string content with stable issue paths", () => {
+    const result = validateDocument({
+      messages: [
+        {
+          author: { name: "Eris" },
+          content: "",
+        },
+        {
+          author: { name: "Nyx" },
+          content: "Say hi to <@{}>",
+        },
+      ],
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.issues).toEqual([
+      {
+        path: "messages[0].content",
+        code: "invalid_content_syntax",
+        message: "content string must not be empty.",
+      },
+      {
+        path: "messages[1].content",
+        code: "invalid_content_syntax",
+        message: "Mention token must contain a non-empty name at character 11.",
       },
     ]);
   });
