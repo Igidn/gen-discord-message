@@ -26,12 +26,12 @@ const result = await renderToImage({
   messages: [
     {
       author: {
-        name: "lopax",
+        name: "lmw",
         avatarUrl: "https://example.com/avatar.png",
         accentColor: "#57f287",
       },
       timestamp: "2026-04-29T18:30:00Z",
-      content: "Ship it <@{team}> and check `renderToImage`.",
+      content: "Ship it <@67> and check `renderToImage`.",
       edited: true,
     },
   ],
@@ -50,7 +50,7 @@ Validates unknown input without throwing for normal user mistakes.
 import { validateDocument } from "gen-discord-message";
 
 const validation = validateDocument({
-  messages: [{ author: { name: "Eris" }, content: "hello" }],
+  messages: [{ author: { name: "Eris" }, content: "gay" }],
 });
 
 if (!validation.valid) {
@@ -78,7 +78,7 @@ const result = await renderToHtml({
   messages: [
     {
       author: { name: "Eris" },
-      content: "Hello **world** <@{team}> https://example.com/docs",
+      content: "Hello **world** <@67> https://example.com/docs",
     },
   ],
 });
@@ -109,7 +109,7 @@ const image = await renderToImage(
     messages: [
       {
         author: { name: "Eris" },
-        content: "Ship it <@{team}>",
+        content: "im gay <@everyone>",
       },
     ],
   },
@@ -215,10 +215,10 @@ const document = {
     {
       author: { name: "Eris" },
       content: [
-        { type: "text", value: "Ship it " },
-        { type: "mention", value: "@team" },
-        { type: "text", value: " with " },
-        { type: "inlineCode", value: "renderToImage" },
+        { type: "text", value: "use" },
+        { type: "text", value: " this " },
+        { type: "inlineCode", value: "67" },
+        { type: "mention", value: "@everyone" },
       ],
     },
   ],
